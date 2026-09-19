@@ -15,7 +15,6 @@ lugar de recorrer el indice completo, y facilita archivar jornadas antiguas.
 
 from __future__ import annotations
 
-import sqlalchemy as sa
 from alembic import op
 
 revision = "0001"
