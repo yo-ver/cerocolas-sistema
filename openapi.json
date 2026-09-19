@@ -1,0 +1,1324 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Cero Colas — Medicion de tiempo de espera",
+    "description": "\nAPI del sistema de medicion automatizada del tiempo de espera, en el marco del\nPlan Cero Colas (RM N.° 811-2018/MINSA).\n\n**Como funciona.** Los agentes de vision instalados en cada hospital detectan\ncruces de personas en lineas virtuales y los envian a `/v1/cruces:lote`. El\nservidor reconstruye las curvas de flujo acumulado y deriva la ocupacion y el\ntiempo de espera.\n\n**Que no hace.** No identifica personas, no almacena imagenes y no realiza\nreconocimiento facial ni re-identificacion. Un cruce solo registra que alguien\natraveso una linea en un sentido y en un instante.\n",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/v1/auth/token": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Obtener token de acceso",
+        "operationId": "emitir_token_v1_auth_token_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudToken"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cruces:lote": {
+      "post": {
+        "tags": [
+          "ingesta"
+        ],
+        "summary": "Ingesta por lotes de cruces detectados",
+        "operationId": "ingestar_cruces_v1_cruces_lote_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoteCruces"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaLote"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/aforos": {
+      "post": {
+        "tags": [
+          "ingesta"
+        ],
+        "summary": "Conteo directo de ocupacion",
+        "operationId": "registrar_aforo_v1_aforos_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AforoEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Registrar Aforo V1 Aforos Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/catalogos/salas": {
+      "get": {
+        "tags": [
+          "indicadores"
+        ],
+        "summary": "Salas configuradas",
+        "operationId": "listar_salas_v1_catalogos_salas_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SalaSalida"
+                  },
+                  "type": "array",
+                  "title": "Response Listar Salas V1 Catalogos Salas Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/salas/{codigo}/estado": {
+      "get": {
+        "tags": [
+          "indicadores"
+        ],
+        "summary": "Ocupacion actual y espera estimada",
+        "operationId": "estado_sala_v1_salas__codigo__estado_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "codigo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Codigo"
+            }
+          },
+          {
+            "name": "fecha",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Fecha operativa; por defecto hoy",
+              "title": "Fecha"
+            },
+            "description": "Fecha operativa; por defecto hoy"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstadoSala"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/salas/{codigo}/curvas": {
+      "get": {
+        "tags": [
+          "indicadores"
+        ],
+        "summary": "Series N_in y N_out de una jornada",
+        "operationId": "curvas_sala_v1_salas__codigo__curvas_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "codigo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Codigo"
+            }
+          },
+          {
+            "name": "fecha",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Fecha"
+            }
+          },
+          {
+            "name": "paso_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 60,
+              "minimum": 1,
+              "default": 5,
+              "title": "Paso Min"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaCurvas"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/indicadores": {
+      "get": {
+        "tags": [
+          "indicadores"
+        ],
+        "summary": "P50 y P90 por establecimiento y rango de fechas",
+        "operationId": "indicadores_v1_indicadores_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sala",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Codigo de sala",
+              "title": "Sala"
+            },
+            "description": "Codigo de sala"
+          },
+          {
+            "name": "desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Desde"
+            }
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Hasta"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaIndicadores"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/calibraciones": {
+      "post": {
+        "tags": [
+          "calibracion"
+        ],
+        "summary": "Registrar una observacion manual con cronometro",
+        "operationId": "registrar_calibracion_v1_calibraciones_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalibracionEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalibracionSalida"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/calibraciones/resumen": {
+      "get": {
+        "tags": [
+          "calibracion"
+        ],
+        "summary": "Error absoluto medio y sesgo del sistema",
+        "operationId": "resumen_calibracion_v1_calibraciones_resumen_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sala",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Codigo de sala",
+              "title": "Sala"
+            },
+            "description": "Codigo de sala"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumenCalibracion"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/salud": {
+      "get": {
+        "tags": [
+          "operacion"
+        ],
+        "summary": "Verificacion de disponibilidad",
+        "operationId": "salud_salud_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Salud Salud Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AforoEntrada": {
+        "properties": {
+          "sala_id": {
+            "type": "string",
+            "title": "Sala Id"
+          },
+          "ocurrido_en": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ocurrido En"
+          },
+          "conteo": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Conteo"
+          },
+          "metodo": {
+            "type": "string",
+            "title": "Metodo",
+            "default": "VISION"
+          },
+          "confianza": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confianza"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sala_id",
+          "ocurrido_en",
+          "conteo"
+        ],
+        "title": "AforoEntrada"
+      },
+      "CalibracionEntrada": {
+        "properties": {
+          "sala_id": {
+            "type": "string",
+            "title": "Sala Id"
+          },
+          "observador": {
+            "type": "string",
+            "title": "Observador"
+          },
+          "t_entrada_obs": {
+            "type": "string",
+            "format": "date-time",
+            "title": "T Entrada Obs"
+          },
+          "t_salida_obs": {
+            "type": "string",
+            "format": "date-time",
+            "title": "T Salida Obs"
+          },
+          "con_acompanante": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Con Acompanante"
+          },
+          "notas": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sala_id",
+          "observador",
+          "t_entrada_obs",
+          "t_salida_obs"
+        ],
+        "title": "CalibracionEntrada"
+      },
+      "CalibracionSalida": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "observador": {
+            "type": "string",
+            "title": "Observador"
+          },
+          "espera_obs_min": {
+            "type": "number",
+            "title": "Espera Obs Min"
+          },
+          "espera_sistema_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Espera Sistema Min"
+          },
+          "error_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Min"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "observador",
+          "espera_obs_min",
+          "espera_sistema_min",
+          "error_min"
+        ],
+        "title": "CalibracionSalida"
+      },
+      "CruceEntrada": {
+        "properties": {
+          "linea": {
+            "type": "string",
+            "title": "Linea",
+            "description": "Nombre de la linea virtual, p. ej. ENTRADA_SALA"
+          },
+          "direccion": {
+            "type": "string",
+            "enum": [
+              "IN",
+              "OUT"
+            ],
+            "title": "Direccion"
+          },
+          "ocurrido_en": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ocurrido En",
+            "description": "ISO 8601 con desfase horario explicito"
+          },
+          "confianza": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confianza"
+          },
+          "track_id_local": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Track Id Local",
+            "description": "Identificador de seguimiento local del agente. No identifica a ninguna persona: se reinicia con cada arranque y solo sirve para depurar conteos duplicados."
+          }
+        },
+        "type": "object",
+        "required": [
+          "linea",
+          "direccion",
+          "ocurrido_en"
+        ],
+        "title": "CruceEntrada",
+        "description": "Un cruce reportado por el agente de vision."
+      },
+      "EstadoSala": {
+        "properties": {
+          "sala_id": {
+            "type": "string",
+            "title": "Sala Id"
+          },
+          "nombre": {
+            "type": "string",
+            "title": "Nombre"
+          },
+          "establecimiento": {
+            "type": "string",
+            "title": "Establecimiento"
+          },
+          "fecha_operativa": {
+            "type": "string",
+            "format": "date",
+            "title": "Fecha Operativa"
+          },
+          "momento": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Momento"
+          },
+          "ocupacion": {
+            "type": "integer",
+            "title": "Ocupacion"
+          },
+          "n_entradas": {
+            "type": "integer",
+            "title": "N Entradas"
+          },
+          "n_salidas": {
+            "type": "integer",
+            "title": "N Salidas"
+          },
+          "espera_estimada_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Espera Estimada Min"
+          },
+          "espera_p50_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Espera P50 Min"
+          },
+          "espera_p90_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Espera P90 Min"
+          },
+          "ratio_acompanante": {
+            "type": "number",
+            "title": "Ratio Acompanante"
+          },
+          "muestras": {
+            "type": "integer",
+            "title": "Muestras"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sala_id",
+          "nombre",
+          "establecimiento",
+          "fecha_operativa",
+          "momento",
+          "ocupacion",
+          "n_entradas",
+          "n_salidas",
+          "espera_estimada_min",
+          "espera_p50_min",
+          "espera_p90_min",
+          "ratio_acompanante",
+          "muestras"
+        ],
+        "title": "EstadoSala"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IndicadorDia": {
+        "properties": {
+          "sala_id": {
+            "type": "string",
+            "title": "Sala Id"
+          },
+          "fecha_operativa": {
+            "type": "string",
+            "format": "date",
+            "title": "Fecha Operativa"
+          },
+          "n_pacientes": {
+            "type": "integer",
+            "title": "N Pacientes"
+          },
+          "espera_p50_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Espera P50 Min"
+          },
+          "espera_p90_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Espera P90 Min"
+          },
+          "espera_promedio_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Espera Promedio Min"
+          },
+          "ocupacion_maxima": {
+            "type": "integer",
+            "title": "Ocupacion Maxima"
+          },
+          "descartados": {
+            "type": "integer",
+            "title": "Descartados"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sala_id",
+          "fecha_operativa",
+          "n_pacientes",
+          "espera_p50_min",
+          "espera_p90_min",
+          "espera_promedio_min",
+          "ocupacion_maxima",
+          "descartados"
+        ],
+        "title": "IndicadorDia"
+      },
+      "LoteCruces": {
+        "properties": {
+          "sala_id": {
+            "type": "string",
+            "title": "Sala Id",
+            "description": "Codigo de la sala, p. ej. LOR-CE-01"
+          },
+          "agente": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agente",
+            "description": "Hostname del agente emisor"
+          },
+          "cruces": {
+            "items": {
+              "$ref": "#/components/schemas/CruceEntrada"
+            },
+            "type": "array",
+            "maxItems": 5000,
+            "minItems": 1,
+            "title": "Cruces"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sala_id",
+          "cruces"
+        ],
+        "title": "LoteCruces"
+      },
+      "PuntoCurva": {
+        "properties": {
+          "t": {
+            "type": "string",
+            "format": "date-time",
+            "title": "T"
+          },
+          "n_in": {
+            "type": "integer",
+            "title": "N In"
+          },
+          "n_out": {
+            "type": "integer",
+            "title": "N Out"
+          },
+          "ocupacion": {
+            "type": "integer",
+            "title": "Ocupacion"
+          }
+        },
+        "type": "object",
+        "required": [
+          "t",
+          "n_in",
+          "n_out",
+          "ocupacion"
+        ],
+        "title": "PuntoCurva"
+      },
+      "RechazoCruce": {
+        "properties": {
+          "indice": {
+            "type": "integer",
+            "title": "Indice"
+          },
+          "motivo": {
+            "type": "string",
+            "title": "Motivo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "indice",
+          "motivo"
+        ],
+        "title": "RechazoCruce"
+      },
+      "RespuestaCurvas": {
+        "properties": {
+          "sala_id": {
+            "type": "string",
+            "title": "Sala Id"
+          },
+          "fecha_operativa": {
+            "type": "string",
+            "format": "date",
+            "title": "Fecha Operativa"
+          },
+          "paso_min": {
+            "type": "integer",
+            "title": "Paso Min"
+          },
+          "puntos": {
+            "items": {
+              "$ref": "#/components/schemas/PuntoCurva"
+            },
+            "type": "array",
+            "title": "Puntos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sala_id",
+          "fecha_operativa",
+          "paso_min",
+          "puntos"
+        ],
+        "title": "RespuestaCurvas"
+      },
+      "RespuestaIndicadores": {
+        "properties": {
+          "desde": {
+            "type": "string",
+            "format": "date",
+            "title": "Desde"
+          },
+          "hasta": {
+            "type": "string",
+            "format": "date",
+            "title": "Hasta"
+          },
+          "filas": {
+            "items": {
+              "$ref": "#/components/schemas/IndicadorDia"
+            },
+            "type": "array",
+            "title": "Filas"
+          },
+          "resumen_p50_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resumen P50 Min"
+          },
+          "resumen_p90_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resumen P90 Min"
+          }
+        },
+        "type": "object",
+        "required": [
+          "desde",
+          "hasta",
+          "filas",
+          "resumen_p50_min",
+          "resumen_p90_min"
+        ],
+        "title": "RespuestaIndicadores"
+      },
+      "RespuestaLote": {
+        "properties": {
+          "lote_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Lote Id"
+          },
+          "recibidos": {
+            "type": "integer",
+            "title": "Recibidos"
+          },
+          "aceptados": {
+            "type": "integer",
+            "title": "Aceptados"
+          },
+          "rechazados": {
+            "type": "integer",
+            "title": "Rechazados"
+          },
+          "duplicado": {
+            "type": "boolean",
+            "title": "Duplicado",
+            "description": "True si la clave de idempotencia ya habia sido procesada; en ese caso no se insertaron cruces nuevos.",
+            "default": false
+          },
+          "detalles": {
+            "items": {
+              "$ref": "#/components/schemas/RechazoCruce"
+            },
+            "type": "array",
+            "title": "Detalles",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "lote_id",
+          "recibidos",
+          "aceptados",
+          "rechazados"
+        ],
+        "title": "RespuestaLote"
+      },
+      "ResumenCalibracion": {
+        "properties": {
+          "sala_id": {
+            "type": "string",
+            "title": "Sala Id"
+          },
+          "n_observaciones": {
+            "type": "integer",
+            "title": "N Observaciones"
+          },
+          "error_absoluto_medio_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Absoluto Medio Min"
+          },
+          "sesgo_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sesgo Min"
+          },
+          "ratio_acompanante_observado": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ratio Acompanante Observado"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sala_id",
+          "n_observaciones",
+          "error_absoluto_medio_min",
+          "sesgo_min",
+          "ratio_acompanante_observado"
+        ],
+        "title": "ResumenCalibracion"
+      },
+      "SalaSalida": {
+        "properties": {
+          "codigo": {
+            "type": "string",
+            "title": "Codigo"
+          },
+          "nombre": {
+            "type": "string",
+            "title": "Nombre"
+          },
+          "establecimiento": {
+            "type": "string",
+            "title": "Establecimiento"
+          },
+          "aforo_referencial": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aforo Referencial"
+          },
+          "ratio_acompanante": {
+            "type": "number",
+            "title": "Ratio Acompanante"
+          },
+          "activo": {
+            "type": "boolean",
+            "title": "Activo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "codigo",
+          "nombre",
+          "establecimiento",
+          "aforo_referencial",
+          "ratio_acompanante",
+          "activo"
+        ],
+        "title": "SalaSalida"
+      },
+      "SolicitudToken": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "SolicitudToken"
+      },
+      "Token": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "rol": {
+            "type": "string",
+            "title": "Rol"
+          },
+          "expira_en": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expira En"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "rol",
+          "expira_en"
+        ],
+        "title": "Token"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "OAuth2PasswordBearer": {
+        "type": "oauth2",
+        "flows": {
+          "password": {
+            "scopes": {},
+            "tokenUrl": "/v1/auth/token"
+          }
+        }
+      }
+    }
+  }
+}

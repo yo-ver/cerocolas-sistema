@@ -1,0 +1,38 @@
+# Despliegue del backend. El agente de vision NO va aqui: corre en el equipo
+# de borde dentro de cada hospital, junto a las camaras.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cerocolas
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cambiar}
+      POSTGRES_DB: cerocolas
+      TZ: America/Lima
+    volumes:
+      - datos_pg:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cerocolas -d cerocolas"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://cerocolas:${POSTGRES_PASSWORD:-cambiar}@db:5432/cerocolas
+      JWT_SECRETO: ${JWT_SECRETO:-cambiar-en-produccion}
+      ZONA_HORARIA: America/Lima
+      ENTORNO: ${ENTORNO:-desarrollo}
+      CORS_ORIGENES: ${CORS_ORIGENES:-http://localhost:5173}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+volumes:
+  datos_pg:

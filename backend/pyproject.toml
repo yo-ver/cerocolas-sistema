@@ -1,0 +1,58 @@
+[project]
+name = "cerocolas-api"
+version = "0.1.0"
+description = "Medicion del tiempo de espera en sala de espera de consultorios externos"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "RUF", "EXE"]
+ignore = [
+    # Query(), Depends() y Header() en los valores por defecto son el patron
+    # idiomatico de FastAPI, no un descuido.
+    "B008",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Los scripts y las pruebas ajustan sys.path antes de importar la aplicacion,
+# lo que obliga a colocar imports despues de codigo ejecutable.
+"scripts/*" = ["E402"]
+"tests/conftest.py" = ["E402"]
+"alembic/env.py" = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
+# Los marcadores permiten ejecutar cada nivel por separado en la canalizacion
+# y obtener, en el registro de la ejecucion, un diagnostico inmediato sobre
+# que nivel fallo. Se asignan automaticamente segun la carpeta (ver conftest).
+markers = [
+    "unitaria: verifica una unidad en aislamiento",
+    "integracion: verifica la colaboracion entre componentes a traves de la API",
+]
+
+[tool.coverage.run]
+source = ["app"]
+# Medicion por ramas y no solo por sentencias. El foco de este sistema son los
+# caminos de error —lote duplicado, linea invertida, sala inexistente, espera
+# implausible—, que alcanzarian cobertura completa de sentencias ejercitando
+# unicamente su camino verdadero.
+branch = true
+omit = ["*/__init__.py"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 90
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    # El cuerpo de un metodo abstracto no es codigo que se pueda ejercitar:
+    # existe para declarar el contrato, y la implementacion concreta es la que
+    # se prueba. Es la exclusion recomendada por la documentacion de coverage.
+    "@(abc\\.)?abstractmethod",
+]

@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Entorno y secretos
+.env
+.env.local
+
+# Bases de datos locales
+*.db
+*.db-wal
+*.db-shm
+
+# Pruebas y cobertura
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Agente
+agente/datos/
+agente/config.yaml
+agente/lineas.yaml
+*.pt
+
+# Sistema
+.DS_Store

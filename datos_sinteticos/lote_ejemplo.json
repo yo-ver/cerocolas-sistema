@@ -1,0 +1,42 @@
+{
+  "sala_id": "LOR-CE-01",
+  "agente": "lorena-edge-01",
+  "cruces": [
+    {
+      "linea": "ENTRADA_SALA",
+      "direccion": "IN",
+      "ocurrido_en": "2026-07-20T05:32:39.966451-05:00",
+      "confianza": 0.822
+    },
+    {
+      "linea": "ENTRADA_SALA",
+      "direccion": "IN",
+      "ocurrido_en": "2026-07-20T05:35:36.909215-05:00",
+      "confianza": 0.974
+    },
+    {
+      "linea": "ENTRADA_SALA",
+      "direccion": "IN",
+      "ocurrido_en": "2026-07-20T05:38:48.080220-05:00",
+      "confianza": 0.931
+    },
+    {
+      "linea": "ENTRADA_SALA",
+      "direccion": "IN",
+      "ocurrido_en": "2026-07-20T05:40:27.083478-05:00",
+      "confianza": 0.786
+    },
+    {
+      "linea": "ENTRADA_SALA",
+      "direccion": "IN",
+      "ocurrido_en": "2026-07-20T05:40:28.683482-05:00",
+      "confianza": 0.85
+    },
+    {
+      "linea": "ENTRADA_SALA",
+      "direccion": "IN",
+      "ocurrido_en": "2026-07-20T05:40:28.788580-05:00",
+      "confianza": 0.695
+    }
+  ]
+}

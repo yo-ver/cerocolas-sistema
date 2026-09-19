@@ -1,0 +1,38 @@
+[project]
+name = "cerocolas-agente"
+version = "0.1.0"
+description = "Agente de vision del sistema de medicion de tiempo de espera"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "RUF"]
+ignore = ["B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"agente/principal.py" = ["E402"]
+"herramientas/*" = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "unitaria: verifica una unidad en aislamiento",
+    "integracion: verifica la colaboracion entre componentes",
+]
+
+[tool.coverage.run]
+source = ["agente"]
+branch = true
+omit = ["*/__init__.py"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]

@@ -1,0 +1,545 @@
+/* Sistema visual del tablero.
+ *
+ * Direccion: instrumento de medicion de un servicio publico, no panel de
+ * producto. Superficie fria y clara, para leerse proyectada en una
+ * sustentacion y en pantalla de oficina sin deslumbrar.
+ *
+ * Los tres estados de espera no son inventados: son la escala ordinal del
+ * propio formulario del Plan Cero Colas (ADECUADO / LARGO / MUY LARGO), la
+ * misma con que el personal ya califica la percepcion del usuario.
+ *
+ * Toda cifra se compone en monoespaciada. No es un gesto estetico: al comparar
+ * P50 y P90 entre jornadas, las columnas deben alinearse digito con digito.
+ */
+
+:root {
+  --pizarra: #16232e;
+  --pizarra-media: #3a4c5a;
+  --tenue: #6b7c88;
+  --papel: #e9edf0;
+  --nieve: #ffffff;
+  --linea: #cfd8de;
+  --linea-suave: #e2e8ec;
+
+  /* Curvas: entradas y salidas se distinguen por matiz, no por intensidad,
+     para que sigan siendo legibles en proyeccion y en impresion en gris. */
+  --entrada: #0e7c66;
+  --salida: #4b3fa8;
+
+  /* Escala del formulario MINSA. */
+  --adecuado: #0e7c66;
+  --largo: #b45309;
+  --muy-largo: #a4161a;
+
+  --sombra: 0 1px 2px rgba(22, 35, 46, 0.06), 0 4px 16px rgba(22, 35, 46, 0.05);
+  --radio: 4px;
+
+  --sans: "IBM Plex Sans", system-ui, sans-serif;
+  --condensada: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#raiz {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--pizarra);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--salida);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --- estructura ---------------------------------------------------------- */
+
+.marco {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px 64px;
+}
+
+.barra {
+  background: var(--pizarra);
+  color: var(--nieve);
+  border-bottom: 3px solid var(--entrada);
+}
+
+.barra__interior {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.barra__titulo {
+  font-family: var(--condensada);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+
+.barra__marco-legal {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #9fb3c0;
+  letter-spacing: 0.03em;
+}
+
+.barra__derecha {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* --- selector de sala ---------------------------------------------------- */
+
+.selector {
+  display: flex;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px;
+  border-radius: var(--radio);
+}
+
+.selector__opcion {
+  background: transparent;
+  border: 0;
+  color: #c7d5de;
+  padding: 6px 14px;
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.selector__opcion:hover {
+  color: var(--nieve);
+}
+
+.selector__opcion[aria-pressed="true"] {
+  background: var(--nieve);
+  color: var(--pizarra);
+}
+
+/* --- encabezado de seccion ----------------------------------------------- */
+
+.seccion {
+  margin-top: 32px;
+}
+
+.seccion__rotulo {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.seccion__titulo {
+  font-family: var(--condensada);
+  font-weight: 600;
+  font-size: 17px;
+  margin: 0;
+}
+
+.seccion__nota {
+  font-size: 13px;
+  color: var(--tenue);
+}
+
+.tarjeta {
+  background: var(--nieve);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+/* --- cifras -------------------------------------------------------------- */
+
+.cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px;
+  background: var(--linea);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  overflow: hidden;
+}
+
+.cifra {
+  background: var(--nieve);
+  padding: 16px 18px 18px;
+  border-top: 3px solid transparent;
+}
+
+.cifra__etiqueta {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--tenue);
+  letter-spacing: 0.02em;
+  margin: 0 0 6px;
+}
+
+.cifra__valor {
+  font-family: var(--mono);
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.cifra__unidad {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--tenue);
+  margin-left: 4px;
+}
+
+.cifra__pie {
+  font-size: 12px;
+  color: var(--tenue);
+  margin-top: 8px;
+}
+
+/* --- distintivo de estado ------------------------------------------------ */
+
+.estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+}
+
+.estado--adecuado {
+  color: var(--adecuado);
+}
+.estado--largo {
+  color: var(--largo);
+}
+.estado--muy-largo {
+  color: var(--muy-largo);
+}
+
+.estado__punto {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* --- leyenda de curvas --------------------------------------------------- */
+
+.leyenda {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 14px 20px 0;
+  font-size: 13px;
+}
+
+.leyenda__item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--pizarra-media);
+}
+
+.leyenda__trazo {
+  width: 20px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.leyenda__formula {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--tenue);
+  margin-left: auto;
+}
+
+.grafico {
+  padding: 8px 8px 16px;
+}
+
+/* --- historial ----------------------------------------------------------- */
+
+.historial {
+  padding: 18px 20px 20px;
+}
+
+.historial__barras {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 130px;
+  border-bottom: 1px solid var(--linea);
+}
+
+.historial__barra {
+  flex: 1;
+  min-width: 6px;
+  border: 0;
+  border-radius: 2px 2px 0 0;
+  padding: 0;
+  transition: filter 0.12s ease;
+}
+
+.historial__barra:hover,
+.historial__barra:focus-visible {
+  filter: brightness(1.2);
+}
+
+.historial__eje {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--tenue);
+  margin-top: 6px;
+}
+
+.historial__detalle {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--linea-suave);
+  font-size: 13px;
+  color: var(--pizarra-media);
+  min-height: 22px;
+}
+
+.historial__detalle strong {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- tabla --------------------------------------------------------------- */
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tabla th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tenue);
+  letter-spacing: 0.02em;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--linea);
+}
+
+.tabla td {
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--linea-suave);
+}
+
+.tabla td.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* --- estados de carga, error y vacio ------------------------------------- */
+
+.aviso {
+  padding: 28px 24px;
+  text-align: center;
+  color: var(--pizarra-media);
+}
+
+.aviso__titulo {
+  font-family: var(--condensada);
+  font-weight: 600;
+  font-size: 16px;
+  margin: 0 0 6px;
+  color: var(--pizarra);
+}
+
+.aviso__texto {
+  font-size: 14px;
+  margin: 0;
+  max-width: 46ch;
+  margin-inline: auto;
+}
+
+.aviso--error {
+  border-left: 3px solid var(--muy-largo);
+  text-align: left;
+}
+
+.esqueleto {
+  background: linear-gradient(90deg, var(--linea-suave) 25%, var(--papel) 50%, var(--linea-suave) 75%);
+  background-size: 200% 100%;
+  animation: brillo 1.4s ease-in-out infinite;
+  border-radius: 3px;
+}
+
+@keyframes brillo {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* --- ingreso ------------------------------------------------------------- */
+
+.ingreso {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.ingreso__caja {
+  width: 100%;
+  max-width: 380px;
+  padding: 30px;
+}
+
+.ingreso__titulo {
+  font-family: var(--condensada);
+  font-weight: 700;
+  font-size: 22px;
+  margin: 0 0 4px;
+}
+
+.ingreso__nota {
+  font-size: 13px;
+  color: var(--tenue);
+  margin: 0 0 22px;
+}
+
+.campo {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.campo__etiqueta {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.campo__entrada {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  font-family: var(--sans);
+  font-size: 14px;
+  background: var(--nieve);
+}
+
+.boton {
+  width: 100%;
+  padding: 10px;
+  background: var(--pizarra);
+  color: var(--nieve);
+  border: 0;
+  border-radius: var(--radio);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.boton:hover:not(:disabled) {
+  background: #21323f;
+}
+
+.boton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.boton--tenue {
+  width: auto;
+  background: transparent;
+  color: #c7d5de;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.boton--tenue:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--nieve);
+}
+
+.error-texto {
+  color: var(--muy-largo);
+  font-size: 13px;
+  margin: 0 0 14px;
+}
+
+/* --- pie ----------------------------------------------------------------- */
+
+.pie {
+  margin-top: 40px;
+  padding-top: 18px;
+  border-top: 1px solid var(--linea);
+  font-size: 12px;
+  color: var(--tenue);
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.pie__mono {
+  font-family: var(--mono);
+}
+
+@media (max-width: 640px) {
+  .barra__interior {
+    padding: 12px 16px;
+  }
+  .marco {
+    padding: 0 16px 48px;
+  }
+  .cifra__valor {
+    font-size: 28px;
+  }
+}

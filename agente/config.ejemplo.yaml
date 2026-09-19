@@ -1,0 +1,63 @@
+# Configuracion del agente de vision.
+# Una copia por establecimiento, en el equipo de borde correspondiente.
+#
+# Las credenciales NO van aqui: se leen de las variables de entorno
+# AGENTE_EMAIL, AGENTE_PASSWORD y AGENTE_RTSP.
+
+sala_id: LOR-CE-01
+hostname: lorena-edge-01
+nivel_registro: INFO
+
+api:
+  url: http://192.168.1.50:8000
+
+video:
+  # rtsp | archivo | simulada
+  fuente: rtsp
+  url: ""                # se sobrescribe con AGENTE_RTSP
+  fps_objetivo: 10       # contar cruces no exige video completo
+  ancho_proceso: 960     # se reescala antes de inferir, para ganar velocidad
+
+detector:
+  tipo: yolo             # yolo | simulado
+  yolo:
+    pesos: yolo11n.pt
+    umbral_confianza: 0.35
+    umbral_iou: 0.5
+    tamano_inferencia: 640
+    seguidor: bytetrack.yaml
+    # dispositivo: cpu   # o 0 para GPU
+  simulado:
+    fps: 10.0
+    personas_por_minuto: 25.0
+
+# Trazar con: python herramientas/calibrar_lineas.py --fuente <url>
+# La direccion positiva es hacia el lado IZQUIERDO de la flecha A->B
+# tal como se ve en pantalla.
+lineas:
+  - nombre: ENTRADA_SALA
+    tipo: ENTRADA
+    a: [120, 620]
+    b: [1800, 620]
+    sentido_positivo: IN
+
+  - nombre: PUERTA_CONS_01
+    tipo: SALIDA
+    a: [250, 400]
+    b: [370, 400]
+    sentido_positivo: OUT
+
+  - nombre: PUERTA_CONS_02
+    tipo: SALIDA
+    a: [400, 400]
+    b: [520, 400]
+    sentido_positivo: OUT
+
+cola:
+  ruta: ./datos/cola.db
+  tamano_lote: 200
+  intervalo_envio_s: 15
+  dias_retencion: 7
+
+# Conteo directo de ocupacion, para corregir la deriva del calculo acumulado.
+intervalo_aforo_s: 300

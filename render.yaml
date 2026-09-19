@@ -1,0 +1,42 @@
+# Despliegue de la API en Render.
+#
+# La base de datos NO se declara aqui: se usa Neon, que ofrece PostgreSQL sin
+# caducidad en su plan gratuito, mientras que las instancias gratuitas de base
+# de datos de Render expiran al mes. Para un proyecto academico que debe seguir
+# en pie el dia de la sustentacion, esa diferencia es decisiva.
+#
+# DATABASE_URL y JWT_SECRETO se configuran desde el panel de Render; no se
+# versionan.
+
+services:
+  - type: web
+    name: cerocolas-api
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # Construye la etapa de produccion. La etapa de pruebas se ejecuta en la
+    # canalizacion de GitHub Actions, no en cada despliegue.
+    dockerCommand: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /salud
+    autoDeploy: true
+    envVars:
+      - key: ENTORNO
+        value: produccion
+      - key: ZONA_HORARIA
+        value: America/Lima
+      - key: HORA_CORTE_OPERATIVA
+        value: "3"
+      - key: ESPERA_MAXIMA_MIN
+        value: "480"
+      # Cadena de conexion de Neon, con sslmode=require.
+      - key: DATABASE_URL
+        sync: false
+      # Generar con: python -c "import secrets; print(secrets.token_urlsafe(48))"
+      - key: JWT_SECRETO
+        sync: false
+      # Dominio del tablero en Vercel, una vez conocido.
+      - key: CORS_ORIGENES
+        sync: false

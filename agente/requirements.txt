@@ -1,0 +1,8 @@
+# Nucleo del agente
+httpx==0.28.1
+PyYAML==6.0.2
+opencv-python-headless==4.10.0.84
+
+# Deteccion. Ultralytics se distribuye bajo AGPL-3.0: si este repositorio se
+# publica, debe licenciarse tambien como AGPL-3.0.
+ultralytics==8.3.55
