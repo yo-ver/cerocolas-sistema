@@ -11,9 +11,19 @@ Por que particionar: la tabla de cruces crece a razon de unas 8 000 filas por
 sala y por dia, y todas las consultas del tablero son por rango de fechas. El
 particionado mensual permite que PostgreSQL descarte particiones enteras en
 lugar de recorrer el indice completo, y facilita archivar jornadas antiguas.
+
+Nota de compatibilidad: PostgreSQL solo permite `CREATE TABLE ... PARTITION
+OF` sobre una tabla declarada particionada (`PARTITION BY RANGE`) desde su
+creacion. Cuando `cruce` se crea via Base.metadata.create_all() (el camino
+que siguen los scripts de desarrollo, incluido sembrar.py), queda como tabla
+normal y el particionado no se puede aplicar retroactivamente sin recrearla
+y migrar los datos. En ese caso esta migracion no hace nada: el sistema
+sigue siendo correcto, solo pierde la optimizacion de particionado.
 """
 
 from __future__ import annotations
+
+import sqlalchemy as sa
 
 from alembic import op
 
@@ -27,10 +37,24 @@ def _es_postgres() -> bool:
     return op.get_bind().dialect.name == "postgresql"
 
 
+def _cruce_esta_particionada() -> bool:
+    bind = op.get_bind()
+    resultado = bind.execute(
+        sa.text("SELECT relkind FROM pg_class WHERE relname = 'cruce'")
+    ).scalar()
+    return resultado == "p"  # 'p' = tabla particionada en pg_class
+
+
 def upgrade() -> None:
     if not _es_postgres():
         # En SQLite (desarrollo y pruebas) el esquema lo crea
         # Base.metadata.create_all; no hay particionado que aplicar.
+        return
+
+    if not _cruce_esta_particionada():
+        # `cruce` ya existe como tabla normal (creada por create_all).
+        # El particionado retroactivo exigiria recrearla y no se aplica
+        # aqui para no arriesgar datos ya sembrados.
         return
 
     # Particiones mensuales para el periodo del piloto. La funcion de
