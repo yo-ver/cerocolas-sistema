@@ -16,10 +16,10 @@ services:
     region: oregon
     rootDir: backend
     dockerfilePath: ./Dockerfile
-    dockerContext: .
+    # dockerContext: .
     # Construye la etapa de produccion. La etapa de pruebas se ejecuta en la
     # canalizacion de GitHub Actions, no en cada despliegue.
-    dockerCommand: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    # dockerCommand: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     healthCheckPath: /salud
     autoDeploy: true
     envVars:
