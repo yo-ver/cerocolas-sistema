@@ -34,7 +34,7 @@ from datetime import datetime, timedelta, timezone
 TZ = timezone(timedelta(hours=-5))          # America/Lima
 SEMILLA = 20260808
 DIAS_HABILES = 24
-FECHA_INICIO = datetime(2026, 7, 20, tzinfo=TZ)   # lunes; 24 jornadas terminan hoy
+FECHA_INICIO = datetime(2026, 8, 23, tzinfo=TZ)   # sabado; 24 jornadas terminan hoy
 
 SEDES = {
     "LOR-CE-01": {

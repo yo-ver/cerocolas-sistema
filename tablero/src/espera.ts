@@ -86,6 +86,8 @@ export function hoyOperativo(): string {
   // 5:40 pertenece a la jornada de ese dia.
   const ahora = new Date();
   if (ahora.getHours() < 3) ahora.setDate(ahora.getDate() - 1);
+  // Los consultorios externos no operan el domingo; mostrar el sábado anterior.
+  if (ahora.getDay() === 0) ahora.setDate(ahora.getDate() - 1);
   return [
     ahora.getFullYear(),
     String(ahora.getMonth() + 1).padStart(2, "0"),
